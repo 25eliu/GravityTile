@@ -106,39 +106,66 @@ app.get('/api/current-sum', async (req, res) => {
 const STATS_LONG_FILE = "statsLong.csv";
 
 // ✅ **Fetch tiles that should turn red based on statsLong.csv**
-let lastProcessedTimestamp = ""; // Stores last processed alert to avoid duplicates
+let lastProcessedLine = 0; // ✅ Keeps track of the last read line to prevent reprocessing
+
+const path = require("path");
+let alertHistory = []; // ✅ Stores persistent alert history
+
+// ✅ Load stored alert history from a file (if exists)
+async function loadAlertHistory() {
+  try {
+    const data = await fs.readFile(ALERT_HISTORY_FILE, "utf8");
+    alertHistory = JSON.parse(data);
+    console.log("✅ Loaded alert history from file.");
+  } catch (err) {
+    console.log("ℹ No previous alert history found, starting fresh.");
+    alertHistory = [];
+  }
+}
+
+// ✅ Save alert history to a file for persistence
+async function saveAlertHistory() {
+  try {
+    await fs.writeFile(ALERT_HISTORY_FILE, JSON.stringify(alertHistory, null, 2));
+  } catch (err) {
+    console.error("❌ Failed to save alert history:", err);
+  }
+}
 
 app.get("/api/alert-history", async (req, res) => {
   try {
     const data = await fs.readFile(STATS_LONG_FILE, "utf8");
     const lines = data.trim().split("\n");
-    console.log("Reading statsLong.csv...");
 
-    let alertHistory = [];
-    let newAlertsDetected = false; // Track if any new alerts were found
+    console.log("🔄 Reading new lines from statsLong.csv...");
 
-    lines.forEach((line, index) => {
+    let newLines = lines.slice(lastProcessedLine); // ✅ Only check new lines
+    let newAlerts = [];
+
+    newLines.forEach((line) => {
       const values = line.split(",");
-      console.log(`Row ${index + 1} Data:`, values); // Debugging output
-
       if (values.length >= 3) {
-        const timestamp = new Date().toISOString(); // Simulated timestamp
-        let alertState = String(values[2]).trim().replace(/^"|"$/g, ""); // Ensure clean value
+        let alertState = values[2].trim().replace(/^"|"$/g, ""); // ✅ Clean up alert state
 
-        console.log(`Row ${index + 1} Alert State: "${alertState}"`);
+        if (alertState === "1") {
+          const timestamp = new Date().toISOString(); // ✅ Use a real timestamp
 
-        // ✅ Only add if alertState is "1" and it's a new alert
-        if (alertState === "1" && timestamp !== lastProcessedTimestamp) {
-          console.log(`✅ New Alert detected at ${timestamp}`);
-          alertHistory.push({ time: timestamp, tile: 1 });
-          lastProcessedTimestamp = timestamp; // ✅ Update last processed timestamp
-          newAlertsDetected = true;
+          // ✅ Prevent duplicate alerts
+          if (!alertHistory.some((alert) => alert.time === timestamp)) {
+            console.log(`🚨 New Alert detected at ${timestamp}`);
+            newAlerts.push({ time: timestamp, tile: 1 });
+          }
         }
       }
     });
 
-    if (!newAlertsDetected) {
-      console.log("ℹ No new alerts detected, skipping update.");
+    // ✅ Update last processed line count
+    lastProcessedLine = lines.length;
+
+    // ✅ Append new alerts and save history persistently
+    if (newAlerts.length > 0) {
+      alertHistory = [...alertHistory, ...newAlerts];
+      await saveAlertHistory(); // ✅ Persist to file
     }
 
     res.json({ alertHistory });
@@ -148,6 +175,8 @@ app.get("/api/alert-history", async (req, res) => {
   }
 });
 
+// ✅ Load alert history at startup
+loadAlertHistory();
 
 app.listen(3001, () => {
   console.log('Server running on port 3001');

@@ -3,10 +3,10 @@ import csv
 import datetime
 import os
 import base64
-# from google.oauth2.credentials import Credentials
-# from google_auth_oauthlib.flow import InstalledAppFlow
-# from google.auth.transport.requests import Request
-# from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
 
 # If modifying these SCOPES, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
@@ -58,13 +58,13 @@ def log_to_csv(tile):
         print(f"Logged tile {tile} at {timestamp}")
     except Exception as e:
         print(f"Failed to log data: {e}")
-# if __name__ == "__main__":
-#     if len(sys.argv) > 1:
-#         try:
-#             tile_number = int(sys.argv[1])  # ✅ Read tile number from command line argument
-#             #log_to_csv(tile_number)  # ✅ Log correct tile number
-#             send_text_if_condition(True, "6502798516@vtext.com", tile_number)  # ✅ Send email with correct tile number
-#         except ValueError:
-#             print("Invalid tile number argument.")
-#     else:
-#         print("No tile number provided.")
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        try:
+            tile_number = int(sys.argv[1])  # ✅ Read tile number from command line argument
+            #log_to_csv(tile_number)  # ✅ Log correct tile number
+            send_text_if_condition(True, "6502798516@vtext.com", tile_number)  # ✅ Send email with correct tile number
+        except ValueError:
+            print("Invalid tile number argument.")
+    else:
+        print("No tile number provided.")

@@ -1,29 +1,48 @@
 import requests
 import time
 import csv
-from text import log_to_csv, send_text_if_condition  # Import functions directly
+from text import log_to_csv, send_text_if_condition
 
 # ✅ Backend API URL
 SERVER_URL = "http://localhost:3001/api/log-tile"
-CSV_FILE = "statsLong.csv"  # Change this to the actual CSV file you want to monitor
+CSV_FILE = "statsLong.csv"
 
-def read_latest_value():
-    """Reads the most recent number from the CSV file."""
+def monitor_csv():
+    """Continuously checks for new lines with nonzero first column values."""
+    last_triggered_value = 0  # ✅ Track last triggered value to prevent duplicate triggers
+
     try:
         with open(CSV_FILE, mode='r', newline='') as file:
-            reader = list(csv.reader(file))
-            if not reader:
-                return 0  # ✅ If file is empty, return 0
-            last_row = reader[-1]  # ✅ Get the last row
-            last_value = float(last_row[-1])  # ✅ Convert last value to float
-            return last_value
-    except Exception as e:
-        print(f"❌ Error reading CSV: {e}")
-        return 0  # Default to 0 if there's an error
+            file.seek(0, 2)  # ✅ Move to end of file, so we only check new lines
+
+            while True:
+                line = file.readline().strip()
+                
+                if not line:
+                    time.sleep(1)  # ✅ Wait and check again
+                    continue
+
+                values = line.split(",")  # ✅ Split CSV row by comma
+                
+                if len(values) >= 1:
+                    try:
+                        first_value = values[0].strip().replace('"', '')  # ✅ Remove extra quotes
+                        first_value = float(first_value)  # ✅ Convert first column to float
+                        
+                        if first_value != 0 and first_value != last_triggered_value:
+                            print(f"🚀 Detected new nonzero value: {first_value}, triggering Tile #1")
+                            test_log_tile(1)  # ✅ Simulate Tile #1 activation
+                            last_triggered_value = first_value  # ✅ Prevent duplicate triggers
+                        
+                    except ValueError:
+                        print(f"⚠ Invalid numeric value in CSV (after stripping): {values[0]}")
+    
+    except FileNotFoundError:
+        print(f"❌ Error: {CSV_FILE} not found. Make sure the file exists and is being updated.")
 
 def test_log_tile(tile_number):
     """Logs a tile activation event to the backend and CSV."""
-    print(f"Simulating tile activation for tile {tile_number}...")
+    print(f"🔵 Simulating tile activation for tile {tile_number}...")
 
     # ✅ Log locally
     log_to_csv(tile_number)
@@ -38,30 +57,6 @@ def test_log_tile(tile_number):
     except Exception as e:
         print(f"Error sending request: {e}")
 
-def test_send_text(tile_number):
-    """Triggers SMS/Email notification."""
-    recipient_email = "6502798516@vtext.com"  # Change this to your carrier email
-    print(f"Triggering SMS/Email for tile {tile_number} to {recipient_email}...")
-
-    # ✅ Call `send_text_if_condition` to send the message
-    send_text_if_condition(True, recipient_email, tile_number)
-    print(f"✅ Notification sent for tile {tile_number}.")
-
-def monitor_csv():
-    """Continuously checks for a nonzero value and logs Tile #1 when detected."""
-    last_triggered_value = 0  # ✅ Keeps track of last triggered value to prevent spam
-
-    while True:
-        latest_value = read_latest_value()
-
-        if latest_value != 0 and latest_value != last_triggered_value:
-            print(f"🚀 Detected nonzero value: {latest_value}, triggering Tile #1")
-            test_log_tile(1)  # ✅ Simulate Tile #1 activation
-            #test_send_text(1)  # ✅ Send alert
-            last_triggered_value = latest_value  # ✅ Prevents duplicate triggering
-
-        time.sleep(1)  # ✅ Check every 5 seconds
-
 if __name__ == "__main__":
-    print("🔄 Monitoring CSV for nonzero values...")
+    print("🔄 Monitoring CSV for new nonzero values in the first column...")
     monitor_csv()
