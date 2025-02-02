@@ -84,6 +84,23 @@ app.get('/api/tile-history', (req, res) => {
     });
 });
 
+// ✅ New Endpoint to Read First Line of stats.csv
+app.get('/api/current-sum', (req, res) => {
+  const filePath = 'stats.csv';
+
+  fs.readFile(filePath, 'utf8', (err, data) => {
+    if (err) {
+      console.error('Error reading stats.csv:', err);
+      return res.status(500).json({ error: 'Failed to read stats.csv' });
+    }
+
+    const firstLine = data.split('\n')[0].trim();
+    const currentSum = parseInt(firstLine, 10) || 0;
+
+    res.json({ currentSum });
+  });
+});
+
 app.listen(3001, () => {
   console.log('Server running on port 3001');
 });

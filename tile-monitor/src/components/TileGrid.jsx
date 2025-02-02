@@ -6,6 +6,30 @@ const TileGrid = () => {
   const [tileHistory, setTileHistory] = useState([]);
   const [activeTile, setActiveTile] = useState(null);
   const [activePeriods, setActivePeriods] = useState([]);
+  const [currentSum, setCurrentSum] = useState(0);
+
+  console.log(currentSum)
+  //const [currentVolts, setCurrentVolts] = useState(0);
+
+  // const fs = require('fs');
+  // // Function to read the first line of the CSV and return it as an integer
+  // function readFirstLine() {
+  //   fs.readFile('stats.csv', 'utf8', (err, data) => {
+  //     if (err) {
+  //       console.error('Error reading the file:', err);
+  //       return;
+  //     }
+
+  //     // Split the content by lines and grab the first line
+  //     const lines = data.split('\n');
+  //     const firstLine = lines[0];
+
+  //     // Convert the first line to an integer
+  //     const currentVal = parseInt(firstLine.trim(), 10);
+
+  //     return currentVal;
+  //   });
+  // }
 
   const fetchTileHistory = async () => {
     try {
@@ -119,12 +143,46 @@ const TileGrid = () => {
       </div>
 
       <div className="mt-6 p-4 bg-gray-100 rounded">
-        <h2 className="text-lg font-semibold mb-2">Tile Activation Timeline (Past 12 Hours)</h2>
+        <h2 className="text-lg font-semibold mb-2">Tile Activation Timeline (Past 4 Hours)</h2>
         {activePeriods.length > 0 ? (
           <Line data={chartData} options={{ scales: { y: { beginAtZero: true, title: { display: true, text: "Tile Number" } } } }} />
         ) : (
-          <p className="text-gray-500">No activations in the past 12 hours.</p>
+          <p className="text-gray-500">No activations in the past 4 hours.</p>
         )}
+      </div>,
+
+      <div className="mt-6 p-4 bg-gray-100 rounded">
+        <h2 className="text-lg font-semibold mb-2">Total Energy Consumption (Past 4 Hours)</h2>
+        {/* Main bar container */}
+        <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden mb-6">
+          {/* Progress bar */}
+          <div 
+            className="h-full bg-green-500 transition-all duration-500"
+            style={{ width: currentSum/10+`%` }}  // Replace with your actual percentage
+          />
+          
+          {/* Milestone markers */}
+          {[250, 500, 750].map(milestone => (
+            <div 
+              key={milestone}
+              className="absolute top-0 bottom-0"
+              style={{ left: `${milestone}%` }}
+            >
+              {/* Tick marker */}
+              <div className="absolute top-0 transform -translate-x-1/2 w-1 h-3 bg-gray-600 rounded" />
+              
+              {/* Milestone number with small space below the tick */}
+              <div className="absolute top-2 transform -translate-x-1/2 text-sm font-medium text-gray-600" style={{ marginTop: '2px' }}>
+                {milestone}V
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Current value display */}
+        <div className="text-center text-lg font-semibold text-gray-700">
+          {currentSum}V stored {/* Replace with your actual voltage */}
+        </div>
       </div>
     </div>
   );

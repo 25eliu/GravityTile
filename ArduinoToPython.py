@@ -1,29 +1,62 @@
 import serial
 import time
+import csv
 
 def get_values_from_arduino():
     # Set up serial communication (adjust with the correct port)
-    ser = serial.Serial('/dev/cu.usbserial-0001', 115200)  # Use /dev/cu.* instead of /dev/tty.*  # Adjust with your port
+    ser = serial.Serial('/dev/cu.usbserial-0001', 115200)  # Adjust with your port
     time.sleep(2)  # Wait for Arduino to initialize
 
     while True:
         try:
             # Read a line from the Arduino and decode it
             data = ser.readline().decode('utf-8').strip()
-            #data = "4, 400, 43, 123"
+            print("data: " + data)
             
             # If data is valid, process it
             if data:
                 values = data.split(",")  # Split the line by commas
 
                 # Convert values to floats
-                avgRaw = float(values[0])  # Raw ADC value
-                sum_value = float(values[1])  # Accumulated sum
-                measuredVoltage_mV = float(values[2])  # Measured voltage
-                coilVoltage_mV = float(values[3])  # Coil voltage
+                # avgRaw = float(values[0])  # Raw ADC value
+                # sum_value = float(values[1])  # Accumulated sum
+                # measuredVoltage_mV = float(values[2])  # Measured voltage
+                # coilVoltage_mV = float(values[3])  # Coil voltage
 
-                # Return or print the values as needed
-                return avgRaw, sum_value, measuredVoltage_mV, coilVoltage_mV
+               # Read the current first line (if it exists)
+                try:
+                    with open('stats.csv', 'r', newline='') as csvfile:
+                        reader = csv.reader(csvfile)
+                        rows = list(reader)
+
+                    # Check if the first line exists and update the first line value
+                    if rows:
+                        current_value = float(rows[0][0])  # Assuming the first value in the first row is a number
+                        new_value = current_value + float(data)  # Add sum_value to the current first line value
+                        rows[0][0] = new_value  # Update the first value in the row
+                except FileNotFoundError:
+                    # If the file doesn't exist yet, initialize with the sum_value
+                    rows = [[float(data)]]
+
+                # Write the updated value back to the file
+                with open('stats.csv', 'w', newline='') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerows(rows)  # Write all rows (including the updated first row)
+
+                try:
+                    with open('statsLong.csv', 'a', newline='') as csvfile:  # Open in append mode
+                        writer = csv.writer(csvfile)
+                        writer.writerow(float(data))  # Append sum_value as a new line
+                except Exception as e:
+                    print(f"Error writing to file: {e}")
+
+                # Write the updated value back to the file
+                with open('stats.csv', 'w', newline='') as csvfile:
+                    writer = csv.writer(csvfile)
+                    writer.writerows(rows)  # Write all rows (including the updated first row)
+
+                # Return the values if needed
+                return new_value
             else:
                 print("No valid data received.")
         except ValueError:
@@ -31,12 +64,8 @@ def get_values_from_arduino():
             print("Error parsing data.")
         time.sleep(0.1)
 
-# Example usage
-avgRaw, sum_value, measuredVoltage_mV, coilVoltage_mV = get_values_from_arduino()
+for i in range(10):
+    get_values_from_arduino()
 
-def returnSum():
-    return sum_value
-#print(f"Raw ADC: {avgRaw}")
-#print(f"Accumulated Sum: {sum_value}")
-#print(f"Measured Voltage: {measuredVoltage_mV} mV")
-#print(f"Coil Voltage: {coilVoltage_mV} mV")
+# Example usage
+# avgRaw, sum_value, measuredVoltage_mV, coilVoltage_mV = get_values_from_arduino()
