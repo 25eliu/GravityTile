@@ -103,6 +103,31 @@ app.get('/api/current-sum', async (req, res) => {
   }
 });
 
+const STATS_LONG_FILE = "statsLong.csv";
+
+// ✅ **Fetch tiles that should turn red based on statsLong.csv**
+app.get("/api/alert-history", async (req, res) => {
+  try {
+    const data = await fs.readFile(STATS_LONG_FILE, "utf8");
+    const lines = data.trim().split("\n").slice(1); // Skip header
+
+    let alertHistory = [];
+
+    lines.forEach((line) => {
+      const [timestamp, alertState] = line.split(",");
+      if (alertState.trim() === "1") {
+        alertHistory.push({ time: timestamp, tile: 1 });
+      }
+    });
+
+    res.json({ alertHistory });
+  } catch (err) {
+    console.error("Error reading statsLong.csv:", err);
+    res.status(500).json({ error: "Failed to read statsLong.csv" });
+  }
+});
+
+
 app.listen(3001, () => {
   console.log('Server running on port 3001');
 });
