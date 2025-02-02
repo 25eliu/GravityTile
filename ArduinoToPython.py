@@ -51,14 +51,14 @@ def get_values_from_arduino():
 
 
                 try:
-                    with open('statsLong.csv', 'a', newline='') as csvfile:  # Open in append mode
+                    with open('tile-monitor/statsLong.csv', 'a', newline='') as csvfile:  # Open in append mode
                         writer = csv.writer(csvfile)
                         writer.writerow([float(data)])  # Wrap float(data) in a list  # Append sum_value as a new line
                 except Exception as e:
                     print(f"Error writing to file: {e}")
 
                 # Write the updated value back to the file
-                with open('statsLong.csv', 'a', newline='') as csvfile:
+                with open('tile-monitor/statsLong.csv', 'a', newline='') as csvfile:
                     writer = csv.writer(csvfile)
                   
 
