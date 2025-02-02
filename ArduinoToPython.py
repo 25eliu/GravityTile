@@ -33,7 +33,10 @@ def get_values_from_arduino():
 
 # Example usage
 avgRaw, sum_value, measuredVoltage_mV, coilVoltage_mV = get_values_from_arduino()
-print(f"Raw ADC: {avgRaw}")
-print(f"Accumulated Sum: {sum_value}")
-print(f"Measured Voltage: {measuredVoltage_mV} mV")
-print(f"Coil Voltage: {coilVoltage_mV} mV")
+
+def returnSum():
+    return sum_value
+#print(f"Raw ADC: {avgRaw}")
+#print(f"Accumulated Sum: {sum_value}")
+#print(f"Measured Voltage: {measuredVoltage_mV} mV")
+#print(f"Coil Voltage: {coilVoltage_mV} mV")
