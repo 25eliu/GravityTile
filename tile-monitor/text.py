@@ -58,13 +58,13 @@ def log_to_csv(tile):
         print(f"Logged tile {tile} at {timestamp}")
     except Exception as e:
         print(f"Failed to log data: {e}")
-# if __name__ == "__main__":
-#     if len(sys.argv) > 1:
-#         try:
-#             tile_number = int(sys.argv[1])  # ✅ Read tile number from command line argument
-#             #log_to_csv(tile_number)  # ✅ Log correct tile number
-#             send_text_if_condition(True, "6502798516@vtext.com", tile_number)  # ✅ Send email with correct tile number
-#         except ValueError:
-#             print("Invalid tile number argument.")
-#     else:
-#         print("No tile number provided.")
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        try:
+            tile_number = int(sys.argv[1])  # ✅ Read tile number from command line argument
+            #log_to_csv(tile_number)  # ✅ Log correct tile number
+            send_text_if_condition(True, "6502798516@vtext.com", tile_number)  # ✅ Send email with correct tile number
+        except ValueError:
+            print("Invalid tile number argument.")
+    else:
+        print("No tile number provided.")
