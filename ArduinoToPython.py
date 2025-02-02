@@ -33,14 +33,25 @@ def get_values_from_arduino():
 
                     # Check if the first line exists and update the first line value
                     if rows:
-                        current_value = float(rows[0][0])  # Assuming the first value in the first row is a number
-                        print("current summated value: " +  str(current_value))
-                        new_value = current_value + float(MilliVolts)  # Add sum_value to the current first line value
-                        print("new value after adding: " +  str(new_value))
-                        rows[0][0] = float(new_value)  # Update the first value in the row
+                        if int(MilliVolts) < 20:
+                            current_value = float(rows[0][0])  # Assuming the first value in the first row is a number
+                            print("current summated value: " + str(current_value))
+                            new_value = current_value + float(MilliVolts)  # Add sum_value to the current first line value
+                            print("new value after adding: " + str(new_value))
+                            rows[0][0] = float(new_value)  # Update the first value in the row
+                            print(rows[0][0])
+
+                            # Write the updated sum back to stats.csv
+                            with open('tile-monitor/stats.csv', 'w', newline='') as csvfile:
+                                writer = csv.writer(csvfile)
+                                writer.writerows(rows)
+
                 except FileNotFoundError:
                     # If the file doesn't exist yet, initialize with the sum_value
                     rows = [[float(MilliVolts)]]
+                    with open('tile-monitor/stats.csv', 'w', newline='') as csvfile:
+                        writer = csv.writer(csvfile)
+                        writer.writerows(rows)
 
                 try:
                     with open('tile-monitor/statsLong.csv', 'a', newline='') as csvfile:  # Open in append mode

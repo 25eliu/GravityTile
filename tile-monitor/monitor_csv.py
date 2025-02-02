@@ -29,7 +29,7 @@ def monitor_csv():
                         first_value = values[0].strip().replace('"', '')  # ✅ Remove extra quotes
                         first_value = float(first_value)  # ✅ Convert first column to float
                         
-                        if first_value != 0 and first_value != last_triggered_value:
+                        if first_value >= 0.65 and first_value != last_triggered_value:
                             print(f"🚀 Detected new nonzero value: {first_value}, triggering Tile #1")
                             test_log_tile(1)  # ✅ Simulate Tile #1 activation
                             last_triggered_value = first_value  # ✅ Prevent duplicate triggers

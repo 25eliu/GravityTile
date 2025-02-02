@@ -60,7 +60,7 @@ const TileGrid = () => {
 
   useEffect(() => {
     fetchCurrentSum();
-    const interval = setInterval(fetchCurrentSum, 1000);
+    const interval = setInterval(fetchCurrentSum, 10);
     return () => clearInterval(interval);
   }, []);
 
@@ -227,7 +227,7 @@ const TileGrid = () => {
         <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden mb-6">
           <div
             className="h-full bg-green-500 transition-all duration-500"
-            style={{ width: `${Math.min(currentSum / 10, 100)}%` }}
+            style={{ width: `${Math.min(currentSum / 0.1, 100)}%` }}
           />
         </div>
 
