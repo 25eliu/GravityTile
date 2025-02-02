@@ -106,23 +106,44 @@ app.get('/api/current-sum', async (req, res) => {
 const STATS_LONG_FILE = "statsLong.csv";
 
 // ✅ **Fetch tiles that should turn red based on statsLong.csv**
+let lastProcessedTimestamp = ""; // Stores last processed alert to avoid duplicates
+
 app.get("/api/alert-history", async (req, res) => {
   try {
     const data = await fs.readFile(STATS_LONG_FILE, "utf8");
-    const lines = data.trim().split("\n").slice(1); // Skip header
+    const lines = data.trim().split("\n");
+    console.log("Reading statsLong.csv...");
 
     let alertHistory = [];
+    let newAlertsDetected = false; // Track if any new alerts were found
 
-    lines.forEach((line) => {
-      const [timestamp, alertState] = line.split(",");
-      if (alertState.trim() === "1") {
-        alertHistory.push({ time: timestamp, tile: 1 });
+    lines.forEach((line, index) => {
+      const values = line.split(",");
+      console.log(`Row ${index + 1} Data:`, values); // Debugging output
+
+      if (values.length >= 3) {
+        const timestamp = new Date().toISOString(); // Simulated timestamp
+        let alertState = String(values[2]).trim().replace(/^"|"$/g, ""); // Ensure clean value
+
+        console.log(`Row ${index + 1} Alert State: "${alertState}"`);
+
+        // ✅ Only add if alertState is "1" and it's a new alert
+        if (alertState === "1" && timestamp !== lastProcessedTimestamp) {
+          console.log(`✅ New Alert detected at ${timestamp}`);
+          alertHistory.push({ time: timestamp, tile: 1 });
+          lastProcessedTimestamp = timestamp; // ✅ Update last processed timestamp
+          newAlertsDetected = true;
+        }
       }
     });
 
+    if (!newAlertsDetected) {
+      console.log("ℹ No new alerts detected, skipping update.");
+    }
+
     res.json({ alertHistory });
   } catch (err) {
-    console.error("Error reading statsLong.csv:", err);
+    console.error("❌ Error reading statsLong.csv:", err);
     res.status(500).json({ error: "Failed to read statsLong.csv" });
   }
 });

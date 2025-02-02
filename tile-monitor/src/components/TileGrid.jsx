@@ -237,7 +237,9 @@ const TileGrid = () => {
       </div>
             {/* ✅ Alert Table */}
             <div className="w-full max-w-4xl bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-lg font-semibold mb-2 text-center">Alert Activation History</h2>
+        <h2 className="text-lg font-semibold mb-2 text-center">
+          Alert Activation History
+        </h2>
         {alertHistory.length > 0 ? (
           <table className="w-full text-left border-collapse border border-gray-300">
             <thead>
