@@ -1,24 +1,39 @@
 import serial
 import time
 
-# Set up serial communication (change 'COM3' to your Arduino's port)
-# For macOS, it might look like '/dev/ttyUSB0' or '/dev/tty.usbmodemXXXX'
-# For Windows, it could be something like 'COM3' or 'COM4'
+def get_values_from_arduino():
+    # Set up serial communication (adjust with the correct port)
+    ser = serial.Serial('/dev/cu.usbserial-0001', 115200)  # Use /dev/cu.* instead of /dev/tty.*  # Adjust with your port
+    time.sleep(2)  # Wait for Arduino to initialize
 
-ser = serial.Serial('/dev/tty.usbserial-0001', 9600)  # Adjust with the correct port
-time.sleep(2)  # Wait for Arduino to initialize
+    while True:
+        try:
+            # Read a line from the Arduino and decode it
+            data = ser.readline().decode('utf-8').strip()
+            #data = "4, 400, 43, 123"
+            
+            # If data is valid, process it
+            if data:
+                values = data.split(",")  # Split the line by commas
 
-# Read data from Arduino once
-try:
-    voltage_data = ser.readline().decode('utf-8').strip()
-    
-    # Convert the string to float (in case the Arduino sends valid voltage)
-    voltage = float(voltage_data)
-    print(f"{voltage}")
+                # Convert values to floats
+                avgRaw = float(values[0])  # Raw ADC value
+                sum_value = float(values[1])  # Accumulated sum
+                measuredVoltage_mV = float(values[2])  # Measured voltage
+                coilVoltage_mV = float(values[3])  # Coil voltage
 
-except ValueError:
-    # Handle the case where data is not a valid float
-    print("Invalid data received.")
+                # Return or print the values as needed
+                return avgRaw, sum_value, measuredVoltage_mV, coilVoltage_mV
+            else:
+                print("No valid data received.")
+        except ValueError:
+            # Handle any case where conversion fails
+            print("Error parsing data.")
+        time.sleep(0.1)
 
-# Close the serial connection
-ser.close()
+# Example usage
+avgRaw, sum_value, measuredVoltage_mV, coilVoltage_mV = get_values_from_arduino()
+print(f"Raw ADC: {avgRaw}")
+print(f"Accumulated Sum: {sum_value}")
+print(f"Measured Voltage: {measuredVoltage_mV} mV")
+print(f"Coil Voltage: {coilVoltage_mV} mV")
