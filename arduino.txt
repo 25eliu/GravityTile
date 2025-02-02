@@ -1,0 +1,91 @@
+// #define ANALOG_PIN 32   // Use GPIO32 for the analog input
+// #define NUM_SAMPLES 100 // Number of readings for averaging
+// #define VREF 1100       // ESP32's internal 1.1V reference in millivolts (mV)
+// #define ADC_MAX 4095    // 12-bit ADC resolution
+
+// void setup() {
+//     Serial.begin(115200);
+//     analogReadResolution(12);          // 12-bit ADC resolution
+//     analogSetAttenuation(ADC_0db);     // Set ADC range to 0-1.1V for better sensitivity
+// }
+
+// void loop() {
+//     long sum = 0;
+    
+//     for (int i = 0; i < NUM_SAMPLES; i++) {
+//         sum += analogRead(ANALOG_PIN);  // Read ADC multiple times
+//         delayMicroseconds(100);         // Small delay to reduce noise
+//     }
+
+//     float avgRaw = sum / (float)NUM_SAMPLES; // Calculate the average ADC value
+//     float measuredVoltage_mV = (avgRaw * VREF) / ADC_MAX; // Convert ADC to millivolts
+//     float coilVoltage_mV = measuredVoltage_mV - (VREF / 2); // Adjust for 0.55V bias
+
+//     // Send the values separated by commas
+//     Serial.println(sum);  // Prints the accumulated sum and adds a newline
+
+//     delay(100);  // Short delay before next reading
+// }
+
+#define ANALOG_VOLTAGE_PIN 32  // Coil voltage measurement
+#define ANALOG_CURRENT_PIN 34  // Voltage drop across 330Ω resistor
+#define BUTTON_PIN 33          // Button input
+
+#define NUM_SAMPLES 100  // Averaging samples
+#define VREF 1.1         // ESP32 internal reference voltage
+#define ADC_MAX 4095     // 12-bit ADC resolution
+#define SHUNT_RESISTOR 330.0  // 330Ω resistor for current measurement
+
+bool YesNo = false; 
+
+void setup() {
+    Serial.begin(115200);
+    pinMode(BUTTON_PIN, INPUT_PULLUP); // Enable internal pull-up for button
+    analogReadResolution(12);           // Set ADC resolution to 12-bit
+    analogSetAttenuation(ADC_0db);      // Set ADC range to 0-1.1V for accuracy
+}
+
+void loop() {
+    // Check if button is pressed (LOW means pressed due to pull-up)
+    YesNo = false;
+    if (digitalRead(BUTTON_PIN) == LOW) {
+        // Serial.println("Button Pressed! Measuring...");
+        YesNo = true;
+        delay(200);  // Debounce delay
+    }
+
+    // Read Coil Voltage
+    float coilVoltage = readAveragedVoltage(ANALOG_VOLTAGE_PIN);
+    
+    // Read Voltage Drop Across 330Ω Resistor
+    float voltageDrop = readAveragedVoltage(ANALOG_CURRENT_PIN);
+    
+    // Calculate Current using Ohm’s Law: I = V / R
+    float current = voltageDrop / SHUNT_RESISTOR;
+
+    // Print Results
+    // Coil Voltage (V), multiplied by the 1000 
+    Serial.print(coilVoltage*1000, 6);
+    // Serial.print("Voltage Drop: "); Serial.print(voltageDrop, 6); Serial.print(" V, ");
+     // Amps (mA) 
+    Serial.print(",");
+    Serial.print(current * 1000, 6);
+    Serial.print(",");
+    Serial.print(YesNo);
+    Serial.println("");
+
+    delay(100);  // Sampling delay
+}
+
+// Function to read averaged ADC value
+float readAveragedVoltage(int pin) {
+    long sum = 0;
+    
+    for (int i = 0; i < NUM_SAMPLES; i++) {
+        sum += analogRead(pin);
+        delayMicroseconds(100);  // Small delay to reduce noise
+    }
+
+    float avgRaw = sum / (float)NUM_SAMPLES;
+    return (avgRaw * VREF) / ADC_MAX;  // Convert ADC value to voltage
+}
