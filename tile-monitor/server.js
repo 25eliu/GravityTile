@@ -84,8 +84,8 @@ app.get('/api/tile-history', (req, res) => {
     });
 });
 
-// ✅ New Endpoint to Read First Line of stats.csv
-app.get('/api/current-sum', (req, res) => {
+// ✅ **Fix: Ensure `stats.csv` Reads Are Handled Properly**
+app.get('/api/current-sum', async (req, res) => {
   const filePath = 'stats.csv';
 
   fs.readFile(filePath, 'utf8', (err, data) => {
