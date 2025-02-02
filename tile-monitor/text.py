@@ -47,23 +47,24 @@ def send_text_if_condition(condition, recipient_email, tile):
         send_email_via_gmail_api(recipient_email, tile)
 
 def log_to_csv(tile):
-    timestamp = datetime.datetime.now().isoformat() + "Z"  # Ensure consistent UTC format
-    filename = "tile-monitor/tile_log.csv"
+    """Logs the tile activation with a standardized timestamp format."""
+    timestamp = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"  # ✅ Match JS format
+    filename = "tile_log.csv"
 
     try:
         with open(filename, mode="a", newline="") as file:
             writer = csv.writer(file)
-            writer.writerow([timestamp, tile])  # Always logs as ISO 8601
+            writer.writerow([timestamp, tile])  # ✅ Always logs as ISO 8601
         print(f"Logged tile {tile} at {timestamp}")
     except Exception as e:
         print(f"Failed to log data: {e}")
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        try:
-            tile_number = int(sys.argv[1])  # ✅ Read tile number from command line argument
-            log_to_csv(tile_number)  # ✅ Log correct tile number
-            send_text_if_condition(True, "6502798516@vtext.com", tile_number)  # ✅ Send email with correct tile number
-        except ValueError:
-            print("Invalid tile number argument.")
-    else:
-        print("No tile number provided.")
+# if __name__ == "__main__":
+#     if len(sys.argv) > 1:
+#         try:
+#             tile_number = int(sys.argv[1])  # ✅ Read tile number from command line argument
+#             #log_to_csv(tile_number)  # ✅ Log correct tile number
+#             send_text_if_condition(True, "6502798516@vtext.com", tile_number)  # ✅ Send email with correct tile number
+#         except ValueError:
+#             print("Invalid tile number argument.")
+#     else:
+#         print("No tile number provided.")

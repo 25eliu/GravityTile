@@ -31,6 +31,26 @@ const TileGrid = () => {
   //   });
   // }
 
+  const fetchCurrentSum = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/current-sum');
+      const data = await response.json();
+      
+      if (data.currentSum !== undefined) {
+        setCurrentSum(data.currentSum);  // ✅ Update state with fetched value
+      } else {
+        console.error("Invalid response structure:", data);
+      }
+    } catch (error) {
+      console.error('Error fetching current sum:', error);
+    }
+  };
+  useEffect(() => {
+    fetchCurrentSum();
+    const interval = setInterval(fetchCurrentSum, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   const fetchTileHistory = async () => {
     try {
       const response = await fetch('http://localhost:3001/api/tile-history');
@@ -91,7 +111,7 @@ const TileGrid = () => {
   const handleTileClick = async (tileNumber) => {
     try {
       setActiveTile(tileNumber);
-
+      console.log(currentSum)
       const response = await fetch('http://localhost:3001/api/log-tile', {
         method: 'POST',
         headers: {
@@ -143,16 +163,16 @@ const TileGrid = () => {
       </div>
 
       <div className="mt-6 p-4 bg-gray-100 rounded">
-        <h2 className="text-lg font-semibold mb-2">Tile Activation Timeline (Past 4 Hours)</h2>
+        <h2 className="text-lg font-semibold mb-2">Tile Activation Timeline (Past 12 Hours)</h2>
         {activePeriods.length > 0 ? (
           <Line data={chartData} options={{ scales: { y: { beginAtZero: true, title: { display: true, text: "Tile Number" } } } }} />
         ) : (
-          <p className="text-gray-500">No activations in the past 4 hours.</p>
+          <p className="text-gray-500">No activations in the past 12 hours.</p>
         )}
       </div>,
 
       <div className="mt-6 p-4 bg-gray-100 rounded">
-        <h2 className="text-lg font-semibold mb-2">Total Energy Consumption (Past 4 Hours)</h2>
+        <h2 className="text-lg font-semibold mb-2">Total Energy Generated (Past 12 Hours)</h2>
         {/* Main bar container */}
         <div className="relative h-8 bg-gray-200 rounded-full overflow-hidden mb-6">
           {/* Progress bar */}

@@ -1,14 +1,16 @@
 const express = require('express');
-const fs = require('fs');
+const fs = require('fs').promises;  // Use Promises API for safe file handling
+const { createReadStream } = require('fs');
 const { parse } = require('csv-parse');
 const cors = require('cors');
-const { exec } = require('child_process'); // To trigger Python script
+const { exec } = require('child_process');
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
 const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const TILE_LOG_FILE = 'tile_log.csv';
 
 // Function to normalize timestamps
 const normalizeTimestamp = (timestampStr) => {
@@ -22,26 +24,22 @@ const normalizeTimestamp = (timestampStr) => {
   return isNaN(timestamp.getTime()) ? null : timestamp;
 };
 
-// ✅ **Fix: Ensure Tile Clicks Are Logged in `tile_log.csv`**
-app.post('/api/log-tile', (req, res) => {
+// ✅ **Fix: Use `fs.promises.appendFile` to prevent race conditions**
+app.post('/api/log-tile', async (req, res) => {
   const { tile } = req.body;
   if (!tile || isNaN(tile)) {
     return res.status(400).json({ error: 'Invalid tile number' });
   }
 
-  const timestamp = new Date().toISOString(); // Always use ISO format
+  const timestamp = new Date().toISOString();
   const logEntry = `${timestamp},${tile}\n`;
 
   console.log(`Logging tile ${tile} at ${timestamp}`);
 
-  // ✅ Append the activation time and tile number to `tile_log.csv`
-  fs.appendFile('tile_log.csv', logEntry, (err) => {
-    if (err) {
-      console.error('Error logging tile:', err);
-      return res.status(500).json({ error: 'Failed to log tile' });
-    }
+  try {
+    await fs.appendFile(TILE_LOG_FILE, logEntry, 'utf8');  // ✅ Ensures consistent file writing
 
-    // ✅ Call the Python script to send SMS (optional)
+    // ✅ Call Python script to send SMS/email notification
     exec(`python text.py ${tile}`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing Python script: ${error.message}`);
@@ -50,15 +48,18 @@ app.post('/api/log-tile', (req, res) => {
       console.log(`Python script output: ${stdout}`);
       res.json({ message: 'Tile logged and SMS sent', tile, timestamp });
     });
-  });
+  } catch (err) {
+    console.error('Error writing to CSV:', err);
+    res.status(500).json({ error: 'Failed to log tile' });
+  }
 });
 
-// ✅ **Fix: Ensure the History is Read Correctly**
+// ✅ **Fix: Use a Readable Stream to Read CSV History**
 app.get('/api/tile-history', (req, res) => {
   const now = new Date();
   let tileHistory = [];
 
-  fs.createReadStream('tile_log.csv')
+  createReadStream(TILE_LOG_FILE)
     .pipe(parse({ columns: false, trim: true }))
     .on('data', (row) => {
       if (row.length !== 2) return;
@@ -88,17 +89,18 @@ app.get('/api/tile-history', (req, res) => {
 app.get('/api/current-sum', async (req, res) => {
   const filePath = 'stats.csv';
 
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading stats.csv:', err);
-      return res.status(500).json({ error: 'Failed to read stats.csv' });
-    }
-
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
     const firstLine = data.split('\n')[0].trim();
-    const currentSum = parseInt(firstLine, 10) || 0;
+
+    // ✅ Ensure `currentSum` is always a number
+    const currentSum = isNaN(parseInt(firstLine, 10)) ? 0 : parseInt(firstLine, 10);
 
     res.json({ currentSum });
-  });
+  } catch (err) {
+    console.error('Error reading stats.csv:', err);
+    res.status(500).json({ error: 'Failed to read stats.csv' });
+  }
 });
 
 app.listen(3001, () => {
