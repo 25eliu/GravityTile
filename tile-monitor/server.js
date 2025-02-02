@@ -42,7 +42,7 @@ app.post('/api/log-tile', (req, res) => {
     }
 
     // ✅ Call the Python script to send SMS (optional)
-    exec(`python send_text_if_condition.py ${tile}`, (error, stdout, stderr) => {
+    exec(`python text.py ${tile}`, (error, stdout, stderr) => {
       if (error) {
         console.error(`Error executing Python script: ${error.message}`);
         return res.status(500).json({ error: 'Failed to trigger SMS function' });
