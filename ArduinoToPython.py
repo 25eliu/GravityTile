@@ -37,3 +37,26 @@ print(f"Raw ADC: {avgRaw}")
 print(f"Accumulated Sum: {sum_value}")
 print(f"Measured Voltage: {measuredVoltage_mV} mV")
 print(f"Coil Voltage: {coilVoltage_mV} mV")
+
+# import serial
+# import time
+
+# # Replace with the Bluetooth serial port of your device
+# bluetooth_port = "/dev/cu.usbserial-0001"  # For Mac/Linux
+# # bluetooth_port = "COM5"  # For Windows (Change COM5 to your actual port)
+
+# try:
+#     ser = serial.Serial(bluetooth_port, 9600, timeout=1)  # Match baud rate of Arduino
+#     time.sleep(2)  # Allow time for connection
+
+#     while True:
+#         data = ser.readline().decode('utf-8').strip()  # Read Bluetooth data
+#         if data:
+#             print(f"Received: {data}")  # Print received data
+# except serial.SerialException as e:
+#     print(f"Error: {e}")
+# except KeyboardInterrupt:
+#     print("Exiting...")
+# finally:
+#     if ser:
+#         ser.close()
