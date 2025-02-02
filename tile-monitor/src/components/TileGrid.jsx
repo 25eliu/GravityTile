@@ -37,7 +37,7 @@ const TileGrid = () => {
       const data = await response.json();
       
       if (data.currentSum !== undefined) {
-        setCurrentSum(data.currentSum);  // ✅ Update state with fetched value
+        setCurrentSum(data.currentSum/1000);  // ✅ Update state with fetched value
       } else {
         console.error("Invalid response structure:", data);
       }
@@ -47,7 +47,7 @@ const TileGrid = () => {
   };
   useEffect(() => {
     fetchCurrentSum();
-    const interval = setInterval(fetchCurrentSum, 5000);
+    const interval = setInterval(fetchCurrentSum, 1000);
     return () => clearInterval(interval);
   }, []);
 
