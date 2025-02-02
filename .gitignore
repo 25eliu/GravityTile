@@ -1,2 +1,4 @@
 # Ignore OAuth token file
 token.json
+tile_log.csv
+stats.csv
