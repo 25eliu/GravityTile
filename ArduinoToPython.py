@@ -58,5 +58,5 @@ def get_values_from_arduino():
             print("Error parsing data.")
         time.sleep(0.1)
 
-for i in range(10):
+for i in range(100):
     get_values_from_arduino()

@@ -57,7 +57,7 @@ def monitor_csv():
         if latest_value != 0 and latest_value != last_triggered_value:
             print(f"🚀 Detected nonzero value: {latest_value}, triggering Tile #1")
             test_log_tile(1)  # ✅ Simulate Tile #1 activation
-            test_send_text(1)  # ✅ Send alert
+            #test_send_text(1)  # ✅ Send alert
             last_triggered_value = latest_value  # ✅ Prevents duplicate triggering
 
         time.sleep(1)  # ✅ Check every 5 seconds
