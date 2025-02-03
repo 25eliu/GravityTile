@@ -11,7 +11,7 @@ def get_values_from_arduino():
         try:
             # Read a line from the Arduino and decode it
             data = ser.readline().decode('utf-8').strip()
-            print("current data value: " + data)
+            #print("current data value: " + data)
             
             # If data is valid, process it
             if data:
@@ -19,7 +19,7 @@ def get_values_from_arduino():
 
                 # Convert values to floats
                 MilliVolts = float(values[0])  # Raw ADC value
-                print("current MilliVolts value: " + str(MilliVolts))
+                print("current MV value: " + str(MilliVolts))
                 Amps = float(values[1])  # Accumulated sum
                 #Status = float(values[2])  # Measured voltage
                 # coilVoltage_mV = float(values[3])  # Coil voltage
@@ -39,7 +39,7 @@ def get_values_from_arduino():
                             new_value = current_value + float(MilliVolts)  # Add sum_value to the current first line value
                             print("new value after adding: " + str(new_value))
                             rows[0][0] = float(new_value)  # Update the first value in the row
-                            print(rows[0][0])
+                            #print(rows[0][0])
 
                             # Write the updated sum back to stats.csv
                             with open('tile-monitor/stats.csv', 'w', newline='') as csvfile:
